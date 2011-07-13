@@ -1,6 +1,6 @@
-**FFMPEG** 
-Use FFMPEG from PHP
+FFMPEG 
 =====================
+Use FFMPEG from PHP
 
 Example:
 
