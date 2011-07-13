@@ -70,8 +70,9 @@ class FFMPEG {
 			}
 			
 			if(!$metaHeader) {
-				if(preg_match('/^\s{2}Duration\: ([0-9]{2})\:([0-9]{2})\:([0-9]{2})\.([0-9]{2})/',$line,$matches)) {
-					$metadata['duration'] = ((int)$matches[1]*3600)+((int)$matches[2]*60)+((int)$matches[3])+($matches[4]/100);
+				if(preg_match('/^\s{2}Duration\: ([0-9\:\.]{11})/',$line,$matches)) {
+					$duration = explode(':',$matches[1]);
+					$metadata['duration'] = ((int)$duration[0]*3600)+((int)$duration[1]*60)+((float)$duration[2]);
 				} else if(preg_match('/^Input #0, ([A-Za-z0-9\,]+) from/',$line,$matches)) {
 					$metadata['format'] = explode(',',trim(strtolower($matches[1]),','));
 					if(sizeof($metadata['format']) == 1) $metadata['format'] = $metadata['format'][0];
