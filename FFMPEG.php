@@ -18,6 +18,7 @@ class FFMPEG {
 	
 	protected $_inputFile;
 	protected $_options = array('main'=>array(), 'in'=>array(), 'out'=>array());
+	protected $_lastCommand;
 	protected $_lastOutput;
 	protected $_lastReturn;
 	
@@ -136,6 +137,22 @@ class FFMPEG {
 		
 	}
 	
+	public function getThumbnail($path, $start = 'half') {
+		
+		if($start == 'half') {
+			$metadata = $this->getMetadata();
+			$duration = $metadata['duration'];
+			$start = floor($duration/2);	
+		}
+		else if(!is_numeric($start)) $start = 30;
+		
+		$file = basename($path);
+		$path = dirname($path);
+		
+		$this->getImages($path.'/', $file, array(), array('start'=>$start));
+		
+	}
+	
 	
 	/**
 	 *
@@ -190,6 +207,15 @@ class FFMPEG {
 	
 	/**
 	 *
+	 * Last command
+	 *
+	 */
+	public function getLastCommand() {
+		return $this->_lastCommand;
+	}
+	
+	/**
+	 *
 	 * Last return
 	 *
 	 */
@@ -237,6 +263,8 @@ class FFMPEG {
 	protected function _exec($command) {
 		
 		$command = self::getConfig('bin').' '.trim($command).' 2>&1';
+		
+		$this->_lastCommand = $command;
 		
 		$descriptorspec = array(
 		   0 => array("pipe", "r"),
