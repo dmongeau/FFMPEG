@@ -35,6 +35,15 @@ Examples
 > print $metadata['height']; // 1080
 
 
+**Debug metadata**
+
+> $ffmpeg = new FFMPEG('/path/to/your/video.mp4');
+
+> if(!$ffmpeg){ print 'Fail FFMPEG'; }
+
+> print_r($ffmpeg->getMetadata());
+
+
 **Convert video to flv**
 
 > $ffmpeg = new FFMPEG('/path/to/your/video.mp4');
