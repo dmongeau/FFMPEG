@@ -13,11 +13,11 @@ Examples
 
 > if(!$ffmpeg){ print 'Fail FFMPEG'; }
 
-> echo $ffmpeg->isValid(); //true; 
+> print $ffmpeg->isValid(); //true; 
 
-> echo $ffmpeg->isVideo(); //true; 
+> print $ffmpeg->isVideo(); //true; 
 
-> echo $ffmpeg->isAudio(); //false; 
+> print $ffmpeg->isAudio(); //false; 
 
 
 **Get metadata**
@@ -28,11 +28,11 @@ Examples
 
 > $metadata = $ffmpeg->getMetadata();
 
-> echo $metadata['duration']; // 30 seconds
+> print $metadata['duration']; // 30 seconds
 
-> echo $metadata['width']; // 1920
+> print $metadata['width']; // 1920
 
-> echo $metadata['height']; // 1080
+> print $metadata['height']; // 1080
 
 
 **Convert video to flv**
