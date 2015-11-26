@@ -2,7 +2,16 @@ FFMPEG
 =====================
 Use FFMPEG from PHP
 
-Okay so this is really just a beginning.
+> **IMPORTANT!**
+
+> This class DON'T depend/need of `ffmpeg-php` php extension.
+
+## Requirements
+
+* FFmpeg binary
+* PHP 5
+    * PCRE( Perl-Compatible )
+    * Program execution Functions
 
 Examples
 ---------------------
