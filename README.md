@@ -8,10 +8,10 @@ Use FFMPEG from PHP
 
 ## Requirements
 
-* FFmpeg binary
+* FFmpeg binary <https://ffmpeg.org/download.html>
 * PHP 5
-    * PCRE( Perl-Compatible )
-    * Program execution Functions
+    * PCRE (Perl-Compatible)
+    * Program execution Functions <http://php.net/manual/en/ref.exec.php>
 
 Examples
 ---------------------
