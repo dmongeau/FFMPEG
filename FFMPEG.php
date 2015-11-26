@@ -1,58 +1,70 @@
 <?php
-
-
-
-
+/**
+* Class FFMPEG
+*/
 class FFMPEG {
 	
 	protected static $_config = array(
-		'bin' => 'ffmpeg',
+		'bin' => 'ffmpeg', // binary
 		'optionsWord' => array(
 			'bitrate' => 'b',
 			'duration' => 't',
 			'start' => 'ss',
 			'size' => 's',
 			'overwrite' => 'y'
-		)
-	);
+			)
+		);
 	
 	protected $_inputFile;
-	protected $_options = array('main'=>array(), 'in'=>array(), 'out'=>array());
 	protected $_lastCommand;
 	protected $_lastOutput;
 	protected $_lastReturn;
-	
-	
+	protected $_options = array(
+		'main'=>array(),
+		'in'=>array(),
+		'out'=>array()
+		);
+
 	public function __construct($inputFile = null, $options = array()) {
-		
-		if(isset($inputFile)) $this->setInputFile($inputFile);
-		
-		if(sizeof($options)) $this->setOptions($options);
-		
+		if(isset($inputFile)){
+			$this->setInputFile($inputFile);
+		}
+
+		if(sizeof($options)){
+			$this->setOptions($options);
+		}
 	}
-	
+
 	public function isValid() {
 		$metadata = $this->getMetadata();
-		if(sizeof($metadata) && isset($metadata['format']) && (int)$metadata['duration'] > 0) return true;
+		if(sizeof($metadata) && isset($metadata['format']) && (int)$metadata['duration'] > 0){
+			return true;
+		}
+
 		return false;
 	}
-	
+
 	public function isVideo() {
 		$metadata = $this->getMetadata();
-		if(sizeof($metadata) && isset($metadata['media']) && $metadata['media'] == 'video') return true;
+		if(sizeof($metadata) && isset($metadata['media']) && $metadata['media'] == 'video'){
+			return true;
+		}
+
 		return false;
 	}
-	
+
 	public function isAudio() {
 		$metadata = $this->getMetadata();
-		if(sizeof($metadata) && isset($metadata['media']) && $metadata['media'] == 'audio') return true;
+		if(sizeof($metadata) && isset($metadata['media']) && $metadata['media'] == 'audio'){
+			return true;
+		}
+
 		return false;
 	}
-	
+
 	public function getMetadata() {
-		
 		$output = $this->_exec('-i '.escapeshellarg($this->getInputFile()));
-		
+
 		$metadata = array();
 		$metaHeader = false;
 		foreach($output as $line) {
@@ -67,9 +79,10 @@ class FFMPEG {
 						if($key == 'bytelength') $key = 'size';
 						$metadata[$key] = $matches[2];
 					}
-				}
 			}
-			
+		}
+
+			// Grab MetaData
 			if(!$metaHeader) {
 				if(preg_match('/^\s{2}Duration\: ([0-9\:\.]{11})/',$line,$matches)) {
 					$duration = explode(':',$matches[1]);
@@ -90,8 +103,8 @@ class FFMPEG {
 							} else if(preg_match('/([0-9]+) kb\/s/',$parts[$i],$matches)) {
 								$metadata['videorate'] = (int)$matches[1];
 							}
-						}
-					} else if($metadata['media'] == 'audio') {
+					}
+				} else if($metadata['media'] == 'audio') {
 						$metadata['audio'] = strtolower(trim($parts[0]));
 						for($i = 1; $i < sizeof($parts); $i++) {
 							if(preg_match('/([0-9]+) Hz/',$parts[$i],$matches)) {
@@ -101,58 +114,59 @@ class FFMPEG {
 							} else if(preg_match('/([0-9]+) kb\/s/',$parts[$i],$matches)) {
 								$metadata['audiorate'] = (int)$matches[1];
 							}
-						}
 					}
 				}
 			}
 		}
-		
+	}
+	
 		return $metadata;
 		
 	}
-	
+
 	public function getDuration() {
-		
 		$metadata = $this->getMetadata();
-		
 		return isset($metadata['duration']) ? $metadata['duration']:0;
-		
 	}
-	
+
 	public function convert($output, $optionsIn = array() , $optionsOut = array()) {
-		
-		if(sizeof($optionsIn)) $this->setOptions($optionsIn,'in');
-		if(sizeof($optionsOut)) $this->setOptions($optionsOut,'out');
-		
+		if(sizeof($optionsIn)){
+			$this->setOptions($optionsIn,'in');
+		}
+
+		if(sizeof($optionsOut)){
+			$this->setOptions($optionsOut,'out');
+		}
+
 		$this->_execute($output);
-		
 	}
-	
+
 	public function getImages($path, $name = 'image%d.jpg', $optionsIn = array() , $optionsOut = array()) {
-		
-		if(sizeof($optionsIn)) $this->setOptions($optionsIn,'in');
-		if(sizeof($optionsOut)) $this->setOptions($optionsOut,'out');
-		
-		$this->_execute(rtrim($path,'/').'/'.ltrim($name,'/'));
-		
-	}
+		if(sizeof($optionsIn)){
+			$this->setOptions($optionsIn,'in');
+		}
+
+		if(sizeof($optionsOut)){
+			$this->setOptions($optionsOut,'out');
+		}
 	
+		$this->_execute(rtrim($path,'/').'/'.ltrim($name,'/'));
+	}
+
 	public function getThumbnail($path, $start = 'half') {
-		
 		if($start == 'half') {
 			$metadata = $this->getMetadata();
 			$duration = $metadata['duration'];
 			$start = floor($duration/2);	
 		}
-		else if(!is_numeric($start)) $start = 30;
+	else if(!is_numeric($start)) $start = 30;
 		
 		$file = basename($path);
 		$path = dirname($path);
 		
 		$this->getImages($path.'/', $file, array(), array('start'=>$start));
-		
 	}
-	
+
 	
 	/**
 	 *
@@ -162,23 +176,21 @@ class FFMPEG {
 	public function setOptions($options,$category = 'main') {
 		$this->_options[$category] = $options;
 	}
-	
+
 	public function addOption($option, $value = null,$category = 'main') {
 		$this->_options[$category][$option] = $value;
 	}
-	
+
 	public function getOptions($category = 'main') {
 		return $this->_options[$category];
 	}
-	
+
 	public function hasOptions($category = 'main') {
 		return isset($this->_options[$category]) && sizeof($this->_options[$category]) ? true:false;
 	}
-	
+
 	protected function _prepareOptions($category = 'main') {
-		
 		$words = self::getConfig('optionsWord');
-		
 		$options = $this->getOptions($category);
 		
 		$str = array();
@@ -189,13 +201,13 @@ class FFMPEG {
 				$value = null;
 				$index++;
 			}
-			$option = isset($words[$option]) ? '-'.$words[$option]:$option;
+		$option = isset($words[$option]) ? '-'.$words[$option]:$option;
 			$str[] = $option.(isset($value) ? ' '.escapeshellcmd($value):'');	
 		}
-		
+	
 		return implode(' ',$str);
 	}
-	
+
 	/**
 	 *
 	 * Last output
@@ -204,7 +216,7 @@ class FFMPEG {
 	public function getLastOutput() {
 		return $this->_lastOutput;
 	}
-	
+
 	/**
 	 *
 	 * Last command
@@ -213,7 +225,7 @@ class FFMPEG {
 	public function getLastCommand() {
 		return $this->_lastCommand;
 	}
-	
+
 	/**
 	 *
 	 * Last return
@@ -222,7 +234,7 @@ class FFMPEG {
 	public function getLastReturn() {
 		return $this->_lastReturn;
 	}
-	
+
 	/**
 	 *
 	 * Input file
@@ -231,11 +243,11 @@ class FFMPEG {
 	public function setInputFile($file) {
 		$this->_inputFile = $file;
 	}
-	
+
 	public function getInputFile() {
 		return $this->_inputFile;
 	}
-	
+
 	/**
 	 *
 	 * Execute the command line
@@ -257,15 +269,11 @@ class FFMPEG {
 		$this->_lastOutput = $this->_exec($command);
 		
 		return $this->_lastOutput;
-		
 	}
-	 
+ 
 	protected function _exec($command) {
 		
-		$command = self::getConfig('bin').' '.trim($command).' 2>&1';
-		
-		$this->_lastCommand = $command;
-		
+		$this->_lastCommand = self::getConfig('bin').' '.trim($command).' 2>&1';
 		$descriptorspec = array(
 		   0 => array("pipe", "r"),
 		   1 => array("pipe", "w"),
@@ -274,29 +282,27 @@ class FFMPEG {
 		
 		$cwd = '/tmp';
 		
-		$process = proc_open($command, $descriptorspec, $pipes, $cwd);
+		$process = proc_open($this->_lastCommand, $descriptorspec, $pipes, $cwd);
 		
 		if (is_resource($process)) {
-			
 			$output = explode("\n",stream_get_contents($pipes[1]));
-			
+
 			fclose($pipes[0]);
 			fclose($pipes[1]);
-		
+
 			$this->_lastReturn = proc_close($process);
-			
+	
 			return $output;
 		}
-		
-	}
 	
+	}
+
 	/**
 	 *
 	 * Handle command return code
 	 *
 	 */
 	protected function _catchError($code) {
-		
 		switch((int)$code) {
 			case 0:
 				return true;
@@ -320,29 +326,28 @@ class FFMPEG {
 				throw new Exception('An error occured',$code);
 			break;
 		}
-		
 	}
-	
-	
-	
+
 	/**
 	 *
 	 * Global configuration
 	 *
 	 */
 	public static function setConfig($name, $value = null) {
-		
-		if(!isset($value) && is_array($name)) self::$_config = $name;
-		else if(isset($value) && !is_array($name)) self::$_config[$name] = $value;
-		
+		if(!isset($value) && is_array($name)){
+			self::$_config = $name;
+		}else{
+			if(isset($value) && !is_array($name)){
+				self::$_config[$name] = $value;
+			}
 	}
-	
+	}
+
 	public static function getConfig($name = null) {
-		
-		if(isset($name)) return isset(self::$_config[$name]) ? self::$_config[$name]:null;
-		else return self::$_config;
-		
+		if(isset($name)){
+			return isset(self::$_config[$name]) ? self::$_config[$name]:null;
+		}
+
+		return self::$_config;
 	}
-	
-	
 }
